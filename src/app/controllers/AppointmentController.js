@@ -53,17 +53,26 @@ class AppointmentController {
     /**
      * Check if provider_id is a provider
      */
-    const isProvider = await User.findOne({
+    const checkIsProvider = await User.findOne({
       where: {
         id: provider_id,
         provider: true,
       },
     });
 
-    if (!isProvider) {
+    if (!checkIsProvider) {
       return res
         .status(401)
         .json({ error: 'You can only create appointments with providers' });
+    }
+
+    /**
+     * Check if user logged is scheduling an appointment with himself
+     */
+    if (req.userId === provider_id) {
+      return res
+        .status(401)
+        .json({ error: 'You cannot schedule an appointment with himself' });
     }
 
     /**
@@ -109,7 +118,7 @@ class AppointmentController {
     );
 
     await Notification.create({
-      content: `Novo agentamento de ${user.name} para o dia ${formattedDate}`,
+      content: `Novo agendamento de ${user.name} para o dia ${formattedDate}`,
       user: provider_id,
     });
 
